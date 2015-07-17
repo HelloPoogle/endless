@@ -503,6 +503,12 @@ type endlessConn struct {
 }
 
 func (w endlessConn) Close() error {
+	defer func() {
+		// panic "negative workgroup count" can happen here
+		if r := recover(); r != nil {
+			log.Println("endlessConn.Close warning: ", r)
+		}
+	}()
 	w.server.wg.Done()
 	return w.Conn.Close()
 }
