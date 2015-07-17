@@ -455,6 +455,13 @@ type endlessListener struct {
 }
 
 func (el *endlessListener) Accept() (c net.Conn, err error) {
+	defer func() {
+		// panic "negative WorkGroup counter" can happen here
+		if r := recover(); r != nil {
+			log.Println("endlessListener.Accept warning: ", r)
+		}
+	}()
+
 	tc, err := el.Listener.(*net.TCPListener).AcceptTCP()
 	if err != nil {
 		return
@@ -504,7 +511,7 @@ type endlessConn struct {
 
 func (w endlessConn) Close() error {
 	defer func() {
-		// panic "negative workgroup count" can happen here
+		// panic "negative WorkGroup counter" can happen here
 		if r := recover(); r != nil {
 			log.Println("endlessConn.Close warning: ", r)
 		}
